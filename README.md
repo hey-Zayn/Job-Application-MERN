@@ -6,7 +6,7 @@ A full-stack, responsive web application designed to connect job seekers with re
 
 ## 🚀 Live Demo
 
-Experience the application live: {---- Comming Soon ----}// Replace with your link*
+Experience the application live: {---- Comming Soon ----}
 
 ## ✨ Features
 

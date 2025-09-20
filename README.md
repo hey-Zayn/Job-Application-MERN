@@ -75,13 +75,21 @@ Experience the application live: {---- Comming Soon ----}// Replace with your li
 
 jobsync-mern/
 ├── backend/
+
 │ ├── controllers/
+
 │ ├── database/
+
 │ ├── middleware/
+
 │ ├── models/
+
 │ ├── routes/
+
 │ ├── utils/
+
 │ └── app.js
+
 ├── frontend/
 │ ├── src/
 │ │ ├── assests # images 

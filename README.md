@@ -74,13 +74,21 @@ Experience the application live: {---- Comming Soon ----}// Replace with your li
 ## 📁 Project Structure
 
 jobsync-mern/
+
 ├── backend/
+
 │ ├── controllers/
+
 │ ├── database/
+
 │ ├── middleware/
+
 │ ├── models/
+
 │ ├── routes/
+
 │ ├── utils/
+
 │ └── app.js
 
 ├── frontend/

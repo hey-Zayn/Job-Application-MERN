@@ -72,3 +72,38 @@ Experience the application live: {---- Comming Soon ----}// Replace with your li
     The app will be available at `http://localhost:5173`.
 
 ## 📁 Project Structure
+
+jobsync-mern/
+├── backend/
+│ ├── controllers/
+│ ├── database/
+│ ├── middleware/
+│ ├── models/
+│ ├── routes/
+│ ├── utils/
+│ └── app.js
+├── frontend/
+│ ├── src/
+│ │ ├── assests # images 
+│ │ ├── axios # axios setup 
+│ │ ├── components/ 
+│ │ | ├── shared/ # Reusable UI components (using React & TailWind)
+│ │ | ├── ui/ # Reusable UI components (using Shadcn)
+│ │ ├── lib/ 
+│ │ ├── pages/ # Main pages
+│ │ ├── redux/ # Redux store & Slice
+│ │ ├── features/ # Feature-based slices (auth, jobs, applications)
+│ │ └── utils/ # Helper functions
+│ └── public/
+└── README.md
+
+
+
+
+
+
+## 🐛 Issues and Support
+
+If you find any bugs or have questions about using this project, please let me know by [opening a new issue]([https://github.com/hey-Zayn/Job-Application-MERN](https://github.com/hey-Zayn/Job-Application-MERN)/issues) on GitHub.
+
+I welcome feedback and contributions!

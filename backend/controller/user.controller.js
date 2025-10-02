@@ -1,59 +1,87 @@
 const bcrypt = require('bcryptjs');
 const User = require('../Model/user.model');
 const jwt = require('jsonwebtoken');
+const upload = require('../utils/upload');
 
 
 
 const register = async (req, res) => {
     try {
         const { fullName, email, phone, password, role } = req.body;
+        
+        console.log('Request file:', req.file); // Debug log
+        console.log('Request body keys:', Object.keys(req.body)); // Debug log
 
+        // Check if file exists
+        let profilePhotoUrl = '';
+        if (req.file) {
+            try {
+                const profilePhoto = await upload(req.file); // Remove .path
+                profilePhotoUrl = profilePhoto.secure_url;
+                console.log('Upload successful:', profilePhotoUrl);
+            } catch (uploadError) {
+                console.log('Upload error:', uploadError);
+                return res.status(400).json({
+                    success: false,
+                    message: "File upload failed"
+                });
+            }
+        }
 
         if (!fullName || !email || !phone || !password || !role) {
-            return res.status(404).json({
-                success: false,
-                message: "Please fill all Inputs"
-            })
-        }
-
-        const user = await User.findOne({ email });
-        if (user) {
             return res.status(400).json({
                 success: false,
-                message: "User Already Existed"
-            })
+                message: "Please fill all inputs"
+            });
         }
 
+        // Check for existing user
+        const existingUser = await User.findOne({ 
+            $or: [{ email }, { phone }] 
+        });
+        
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "User with this email or phone already exists"
+            });
+        }
 
         const hashpassword = await bcrypt.hash(password, 10);
 
+        // Create user - fix according to your schema
         const newUser = await User.create({
             fullName,
             email,
             phone,
             password: hashpassword,
-            role
+            role,
+            profile: {
+                profilePhoto: profilePhotoUrl // Store in profile object
+            }
         });
-
-
-        await newUser.save();
-
 
         res.status(201).json({
             success: true,
             message: "User Created Successfully",
-            newUser
-        })
+            user: {
+                id: newUser._id,
+                fullName: newUser.fullName,
+                email: newUser.email,
+                role: newUser.role,
+                profile: newUser.profile
+            }
+        });
 
     } catch (error) {
-        console.log(error);
+        console.log('Registration error:', error);
         res.status(500).json({
             success: false,
             message: "Internal Server Error",
-            error
-        })
+            error: error.message
+        });
     }
-}
+};
 
 
 
@@ -134,6 +162,7 @@ const login = async (req, res) => {
 
 
 
+
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -165,66 +194,86 @@ const logout = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
         const { fullName, email, phone, bio, skills } = req.body;
-
         const file = req.file;
-        if (!fullName || !email || !phone || !bio || !skills) {
-            return res.status(404).json({
-                success: false,
-                message: "Please fill all Inputs"
-            })
-        }
 
-        // cloudinary 
-
-        const skillsArray = skills.split(',');
-
-        const userId = req.id;// middleware authentication 
-        let user = await User.findById(userId);
-        if (userId) {
+        // Validate required fields
+        if (!fullName || !email || !phone) {
             return res.status(400).json({
                 success: false,
-                message: "User not founded"
-            })
+                message: "Please fill all required fields"
+            });
         }
 
+        const userId = req.id; // from middleware authentication
+        
+        // Find user - FIX: Remove the condition that always returns error
+        let user = await User.findById(userId);
+        if (!user) { // FIX: Check if user NOT found
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
 
-        // updating data
-        user.fullName = fullName,
-            user.email = email,
-            user.phone = phone,
-            user.profile.bio = bio,
-            user.profile.skills = skillsArray,
+        let profilePhotoUrl = user.profile?.profilePhoto;
 
-            // resume comes later here....
+        // Handle profile photo upload if file exists
+        if (file) {
+            try {
+                const profilePhoto = await upload(file);
+                profilePhotoUrl = profilePhoto.secure_url;
+            } catch (uploadError) {
+                console.log('Upload error:', uploadError);
+                return res.status(400).json({
+                    success: false,
+                    message: "Profile photo upload failed"
+                });
+            }
+        }
 
-            await user.save();
+        // Convert skills to array if provided
+        const skillsArray = skills ? skills.split(',').map(skill => skill.trim()) : user.profile?.skills || [];
 
-        user = {
+        // Update user data
+        user.fullName = fullName;
+        user.email = email;
+        user.phone = phone;
+        
+        // Update profile fields
+        user.profile = {
+            ...user.profile, // Keep existing profile data
+            bio: bio || user.profile?.bio || '',
+            skills: skillsArray,
+            profilePhoto: profilePhotoUrl // Update profile photo if uploaded
+        };
+
+        await user.save();
+
+        // Prepare response user object
+        const updatedUser = {
             _id: user._id,
             fullName: user.fullName,
             email: user.email,
             phone: user.phone,
             role: user.role,
             profile: user.profile
-        }
+        };
 
         return res.status(200).json({
             success: true,
-            message: "Profile updated successfuly",
-            user
-        })
-
+            message: "Profile updated successfully",
+            user: updatedUser
+        });
 
     } catch (error) {
         console.log(error);
         res.status(500).json({
             success: false,
             message: "Internal Server Error",
-            error
-        })
+            error: error.message
+        });
     }
-}
-
+};
 
 
 

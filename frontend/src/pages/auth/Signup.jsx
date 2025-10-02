@@ -45,15 +45,51 @@ const SignupPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    dispatch(setLoading(true));
 
-    // Signup logic would go here
+    // Validate required fields
+    if (!form.fullName || !form.email || !form.phone || !form.password || !form.role) {
+      toast.error("Please fill all required fields");
+      dispatch(setLoading(false));
+      return;
+    }
+
     try {
-      const res = await authInstance.post("/register", form);
-      console.log(res);
-      toast(res.data.message || "Account has been created.");
+      // Create FormData object
+      const formData = new FormData();
+      
+      // Append all form fields to FormData
+      formData.append('fullName', form.fullName);
+      formData.append('email', form.email);
+      formData.append('phone', form.phone);
+      formData.append('password', form.password);
+      formData.append('role', form.role);
+      
+      // Append the file if it exists
+      if (form.profileImage) {
+        formData.append('profileImage', form.profileImage);
+      }
+
+      // Debug: Check what's in FormData
+      console.log('FormData contents:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ', pair[1]);
+      }
+
+      // Send with FormData
+      const res = await authInstance.post("/register", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      console.log('Registration response:', res);
+      toast.success(res.data.message || "Account has been created successfully!");
       navigate("/login");
     } catch (error) {
-      console.log(error);
+      console.log('Registration error:', error);
+      const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
+      toast.error(errorMessage);
     } finally {
       dispatch(setLoading(false));
     }
@@ -84,13 +120,13 @@ const SignupPage = () => {
     if (file) {
       // Check if file is an image
       if (!file.type.startsWith("image/")) {
-        alert("Please select an image file");
+        toast.error("Please select an image file");
         return;
       }
 
       // Check file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("Please select an image smaller than 5MB");
+        toast.error("Please select an image smaller than 5MB");
         return;
       }
 
@@ -105,6 +141,8 @@ const SignupPage = () => {
         setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
+      
+      toast.success("Profile image selected successfully");
     }
   };
 
@@ -117,6 +155,7 @@ const SignupPage = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    toast.info("Profile image removed");
   };
 
   const checkPasswordStrength = (password) => {
@@ -143,6 +182,10 @@ const SignupPage = () => {
     if (passwordStrength <= 2) return "Weak";
     if (passwordStrength === 3) return "Medium";
     return "Strong";
+  };
+
+  const isFormValid = () => {
+    return form.fullName && form.email && form.phone && form.password && form.role;
   };
 
   return (
@@ -186,7 +229,7 @@ const SignupPage = () => {
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 shadow-md"
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -390,8 +433,8 @@ const SignupPage = () => {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium"
-              disabled={loading}
+              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !isFormValid()}
             >
               {loading ? (
                 <>

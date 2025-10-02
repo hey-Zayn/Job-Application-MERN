@@ -19,7 +19,7 @@ const registerCompany = async (req, res) => {
         }
         const newCompany = await Company.create({
             name: name,
-            userId: req.id,
+            userId: req.id, 
         });
 
         res.status(201).json({

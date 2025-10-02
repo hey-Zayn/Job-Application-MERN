@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,25 +9,53 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Upload, Download, Save, Camera, X, Plus } from "lucide-react";
 import AppliedJobTable from '../components/shared/AppliedJobTable';
+import { useSelector, useDispatch } from 'react-redux';
+import { setUser } from '@/redux/authSlice';
+import { toast } from 'sonner';
+import { authInstance } from '@/axios/authInstance';
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useSelector(store => store.auth);
+  const dispatch = useDispatch();
+  
   const [userData, setUserData] = useState({
-    fullName: "Sarah Johnson",
-    email: "sarah.johnson@example.com",
-    phone: "+1 (555) 123-4567",
-    role: "student",
+    fullName: '',
+    email: '',
+    phone: '',
+    role: '',
     profile: {
-      bio: "Frontend developer with 3+ years of experience specializing in React and TypeScript. Passionate about creating accessible and performant web applications.",
-      skills: ["React", "TypeScript", "Next.js", "Tailwind CSS", "Node.js"],
-      resume: "/resumes/sarah_johnson_resume.pdf",
-      resumeOriginalName: "sarah_johnson_resume.pdf",
-      profilePhoto: "/profile/sarah.jpg",
-      company: null
+      bio: '',
+      skills: [],
+      resume: '',
+      resumeOriginalName: '',
+      profilePhoto: '',
+      company: ''
     }
   });
 
   const [newSkill, setNewSkill] = useState("");
+
+  // Initialize userData when user changes
+  useEffect(() => {
+    if (user) {
+      setUserData({
+        fullName: user.fullName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        role: user.role || '',
+        profile: {
+          bio: user.profile?.bio || '',
+          skills: user.profile?.skills || [],
+          resume: user.profile?.resume || '',
+          resumeOriginalName: user.profile?.resumeOriginalName || '',
+          profilePhoto: user.profile?.profilePhoto || '',
+          company: user.profile?.company || ''
+        }
+      });
+    }
+  }, [user]);
 
   const handleInputChange = (field, value) => {
     if (field.includes('.')) {
@@ -70,15 +98,81 @@ const Profile = () => {
     }));
   };
 
-  const handleSave = () => {
-    // Save logic would go here
-    setIsEditing(false);
-    console.log("Profile saved:", userData);
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      const response = await authInstance.put('/profile/update', userData);
+      
+      if (response.data.success) {
+        // Update Redux store with new user data
+        dispatch(setUser(response.data.user));
+        setIsEditing(false);
+        toast.success(response.data.message || "Profile updated successfully!");
+      } else {
+        toast.error(response.data.message || "Failed to update profile");
+      }
+    } catch (error) {
+      console.error('Profile update error:', error);
+      const errorMessage = error.response?.data?.message || "Failed to update profile. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (event, fileType) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type and size
+    if (fileType === 'profilePhoto') {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+    }
+
+    try {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append(fileType, file);
+
+      const response = await authInstance.put('/profile/update', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.success) {
+        dispatch(setUser(response.data.user));
+        toast.success(`${fileType === 'profilePhoto' ? 'Profile photo' : 'Resume'} updated successfully!`);
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast.error(`Failed to upload ${fileType === 'profilePhoto' ? 'profile photo' : 'resume'}`);
+    } finally {
+      setIsLoading(false);
+      event.target.value = ''; // Reset file input
+    }
   };
 
   const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-700">Loading profile...</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -88,12 +182,46 @@ const Profile = () => {
           <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
           {isEditing ? (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsEditing(false);
+                  // Reset form to original user data
+                  setUserData({
+                    fullName: user.fullName,
+                    email: user.email,
+                    phone: user.phone,
+                    role: user.role,
+                    profile: {
+                      bio: user.profile?.bio || '',
+                      skills: user.profile?.skills || [],
+                      resume: user.profile?.resume || '',
+                      resumeOriginalName: user.profile?.resumeOriginalName || '',
+                      profilePhoto: user.profile?.profilePhoto || '',
+                      company: user.profile?.company || ''
+                    }
+                  });
+                }}
+                disabled={isLoading}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSave} className="flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                Save Changes
+              <Button 
+                onClick={handleSave} 
+                className="flex items-center gap-2"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-t-2 border-white"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Save Changes
+                  </>
+                )}
               </Button>
             </div>
           ) : (
@@ -123,14 +251,21 @@ const Profile = () => {
                   {isEditing && (
                     <label htmlFor="profilePhoto" className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer shadow-md hover:bg-blue-700">
                       <Camera className="h-4 w-4" />
-                      <input id="profilePhoto" type="file" className="hidden" accept="image/*" />
+                      <input 
+                        id="profilePhoto" 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={(e) => handleFileUpload(e, 'profilePhoto')}
+                        disabled={isLoading}
+                      />
                     </label>
                   )}
                 </div>
                 {isEditing && (
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full" disabled={isLoading}>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload Photo
+                    {isLoading ? 'Uploading...' : 'Upload Photo'}
                   </Button>
                 )}
               </CardContent>
@@ -164,7 +299,7 @@ const Profile = () => {
                       id="fullName"
                       value={userData.fullName}
                       onChange={(e) => handleInputChange('fullName', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || isLoading}
                     />
                   </div>
                   <div className="space-y-2">
@@ -172,7 +307,7 @@ const Profile = () => {
                     <Select 
                       value={userData.role} 
                       onValueChange={(value) => handleInputChange('role', value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || isLoading}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select role" />
@@ -193,7 +328,7 @@ const Profile = () => {
                       type="email"
                       value={userData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || isLoading}
                     />
                   </div>
                   <div className="space-y-2">
@@ -203,7 +338,7 @@ const Profile = () => {
                       type="tel"
                       value={userData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      disabled={!isEditing}
+                      disabled={!isEditing || isLoading}
                     />
                   </div>
                 </div>
@@ -222,7 +357,7 @@ const Profile = () => {
                     id="bio"
                     value={userData.profile.bio}
                     onChange={(e) => handleInputChange('profile.bio', e.target.value)}
-                    disabled={!isEditing}
+                    disabled={!isEditing || isLoading}
                     rows={4}
                     placeholder="Tell us about yourself..."
                   />
@@ -238,6 +373,7 @@ const Profile = () => {
                           <button 
                             onClick={() => handleRemoveSkill(skill)}
                             className="ml-2 text-gray-500 hover:text-gray-700"
+                            disabled={isLoading}
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -252,8 +388,14 @@ const Profile = () => {
                         onChange={(e) => setNewSkill(e.target.value)}
                         placeholder="Add a skill"
                         onKeyPress={(e) => e.key === 'Enter' && handleAddSkill()}
+                        disabled={isLoading}
                       />
-                      <Button type="button" onClick={handleAddSkill} variant="outline">
+                      <Button 
+                        type="button" 
+                        onClick={handleAddSkill} 
+                        variant="outline"
+                        disabled={isLoading}
+                      >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -268,15 +410,29 @@ const Profile = () => {
                         <Download className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-sm">{userData.profile.resumeOriginalName}</p>
+                        <p className="font-medium text-sm">
+                          {userData.profile.resumeOriginalName || 'No resume uploaded'}
+                        </p>
                         <p className="text-xs text-gray-500">PDF Document</p>
                       </div>
                     </div>
                     {isEditing && (
-                      <Button variant="outline" size="sm">
-                        <Upload className="h-4 w-4 mr-2" />
-                        Replace
-                      </Button>
+                      <>
+                        <input 
+                          id="resumeUpload"
+                          type="file" 
+                          className="hidden" 
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => handleFileUpload(e, 'resume')}
+                          disabled={isLoading}
+                        />
+                        <label htmlFor="resumeUpload">
+                          <Button variant="outline" size="sm" disabled={isLoading}>
+                            <Upload className="h-4 w-4 mr-2" />
+                            {userData.profile.resume ? 'Replace' : 'Upload'}
+                          </Button>
+                        </label>
+                      </>
                     )}
                   </div>
                 </div>
@@ -284,9 +440,12 @@ const Profile = () => {
             </Card>
           </div>
         </div>
+        
+        {user.role === 'student' && (
           <div className='mt-4'>
-          <AppliedJobTable/>
+            <AppliedJobTable/>
           </div>
+        )}
       </div>
     </div>
   );

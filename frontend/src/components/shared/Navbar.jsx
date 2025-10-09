@@ -74,7 +74,7 @@ const Navbar = () => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-40 p-2" align="end">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                   <Button variant="ghost" size="sm" className="justify-start gap-2">
                     <span className="text-sm">🇺🇸 English</span>
                   </Button>
@@ -108,31 +108,28 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-8">
             <Link
               to="/"
-              className={`font-medium text-sm transition-colors px-2 py-1 rounded-md ${
-                isActiveLink("/") 
-                  ? "text-blue-600 bg-blue-50" 
+              className={`font-medium text-sm transition-colors px-2 py-1 rounded-md ${isActiveLink("/")
+                  ? "text-blue-600 bg-blue-50"
                   : "text-gray-700 hover:text-blue-600"
-              }`}
+                }`}
             >
               Home
             </Link>
             <Link
               to="/jobs"
-              className={`font-medium text-sm transition-colors px-2 py-1 rounded-md ${
-                isActiveLink("/jobs") 
-                  ? "text-blue-600 bg-blue-50" 
+              className={`font-medium text-sm transition-colors px-2 py-1 rounded-md ${isActiveLink("/jobs")
+                  ? "text-blue-600 bg-blue-50"
                   : "text-gray-700 hover:text-blue-600"
-              }`}
+                }`}
             >
               Find Jobs
             </Link>
             <Link
               to="/companies"
-              className={`font-medium text-sm transition-colors px-2 py-1 rounded-md ${
-                isActiveLink("/companies") 
-                  ? "text-blue-600 bg-blue-50" 
+              className={`font-medium text-sm transition-colors px-2 py-1 rounded-md ${isActiveLink("/companies")
+                  ? "text-blue-600 bg-blue-50"
                   : "text-gray-700 hover:text-blue-600"
-              }`}
+                }`}
             >
               Browse Companies
             </Link>
@@ -195,7 +192,8 @@ const Navbar = () => {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-64 p-4" align="end">
-                    <div className="flex items-center gap-3 mb-4 p-2 bg-gray-50 rounded-lg">
+
+                    {/* <div className="flex items-center gap-3 mb-4 p-2 bg-gray-50 rounded-lg">
                       <Avatar className="w-10 h-10">
                         <AvatarImage
                           src={user.profile?.profilePhoto}
@@ -214,8 +212,35 @@ const Navbar = () => {
                           {user.role}
                         </p>
                       </div>
+                    </div> */}
+                    <div className="flex items-center gap-3 mb-4 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                      <Avatar className="w-11 h-11 ring-2 ring-blue-50">
+                        <AvatarImage
+                          src={user.profile?.profilePhoto}
+                          alt={getDisplayName()}
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="bg-blue-500 text-white font-medium">
+                          {getInitials(getDisplayName())}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h2 className="text-sm font-semibold text-gray-900 truncate">
+                            {getDisplayName()}
+                          </h2>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${user.role === 'student'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-purple-100 text-purple-800'
+                            }`}>
+                            {user.role}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
                     </div>
-                    
+
+
                     <div className="space-y-2">
                       <Link to="/profile">
                         <Button variant="outline" className="w-full justify-start gap-2">
@@ -223,28 +248,28 @@ const Navbar = () => {
                           View Profile
                         </Button>
                       </Link>
-                      
+
                       {user.role === 'student' && (
                         <Link to="/my-jobs">
-                          <Button variant="outline" className="w-full justify-start gap-2">
+                          <Button variant="outline" className="w-full justify-start gap-2 mt-2">
                             <BriefcaseBusiness className="h-4 w-4" />
                             My Applications
                           </Button>
                         </Link>
                       )}
-                      
+
                       {user.role === 'recruiter' && (
                         <Link to="/dashboard">
-                          <Button variant="outline" className="w-full justify-start gap-2">
+                          <Button variant="outline" className="w-full justify-start gap-2 mt-2">
                             <BaggageClaim className="h-4 w-4" />
                             Recruiter Dashboard
                           </Button>
                         </Link>
                       )}
-                      
-                      <Button 
-                        variant="destructive" 
-                        className="w-full justify-start gap-2"
+
+                      <Button
+                        variant="destructive"
+                        className="w-full justify-start gap-2 mt-3"
                         onClick={handleLogout}
                       >
                         <LogOut className="h-4 w-4" />

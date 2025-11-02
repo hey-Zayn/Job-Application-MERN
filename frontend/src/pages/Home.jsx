@@ -8,32 +8,35 @@ import HowJobpilotwork from "../components/shared/HowJobpilotwork";
 import PopularCategory from "../components/shared/PopularCategory";
 import Featuredjob from "../components/shared/Featuredjob";
 import Topcompanies from "../components/shared/Topcompanies";
+import CTA from "../components/shared/CTA";
 const Home = () => {
   const cardData = [
     {
       title: "175,324",
       description: "Live Jobs",
-      icon: <BaggageClaim />,
+      icon: <BaggageClaim className="h-7 w-7 max-sm:h-8 max-sm:w-8"/>,
     },
     {
       title: "175,324",
       description: "Live Jobs",
-      icon: <BaggageClaim className="h-7 w-7" />,
+      icon: <BaggageClaim className="h-7 w-7 max-sm:h-8 max-sm:w-8" />,
     },
     {
       title: "175,324",
       description: "Live Jobs",
-      icon: <BaggageClaim className="h-7 w-7" />,
+      icon: <BaggageClaim className="h-7 w-7 max-sm:h-8 max-sm:w-8" />,
     },
     {
       title: "175,324",
       description: "Live Jobs",
-      icon: <BaggageClaim className="h-7 w-7" />,
+      icon: <BaggageClaim className="h-7 w-7 max-sm:h-8 max-sm:w-8" />,
     },
   ];
   return (
-    <>
-      <div className="w-full h-full flex flex-col justify-center items-center  px-20">
+    <main className="w-full h-full overflow-hidden">
+      {/* Hero Section */}
+
+      <div className="w-full h-full flex flex-col justify-center items-center  px-20 max-sm:px-4">
         <div className="w-full min-h-[60vh] flex flex-col lg:flex-row justify-center items-center px-4  sm:px-6 lg:px-8 py-12 lg:pt-20 overflow-hidden">
           <div className="w-full lg:w-1/2 space-y-6 lg:space-y-8 max-w-2xl lg:pr-10">
             <h1 className="text-4xl sm:text-5xl lg:text-5xl font-bold text-gray-900 leading-tight">
@@ -140,22 +143,22 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap  min-h-[20vh] justify-center items-center gap-3 mt-6">
+        <div className="flex flex-wrap  h-full max-sm:h-full justify-center items-center gap-3 max-sm:gap-4 mt-6">
           {cardData?.map((data, index) => (
             <Card
-              className="w-62  rounded-xl border-0  group hover:shadow-lg"
+              className="w-62 max-sm:w-full max-sm:h-full rounded-xl border-0 py-2.5  max-sm:shadow-md group hover:shadow-lg"
               key={index}
             >
-              <div className="flex items-center gap-4 px-2 ">
-                <div className="flex items-center justify-center h-16 w-16 rounded-lg bg-blue-300/20 text-blue-700 shadow-inner group-hover:bg-blue-700 group-hover:text-white transition duration-300">
+              <div className="flex items-center gap-4 max-sm:gap-6 px-2 ">
+                <div className="flex items-center justify-center h-16 w-16   rounded-lg   bg-blue-300/20 text-blue-700/80   shadow-lg group-hover:bg-blue-700 group-hover:text-white transition duration-300">
                   {data.icon}
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-blue-900 tracking-tight">
+                <div className="max-sm:space-y-0">
+                  <h2 className="text-2xl max-sm:text-3xl font-bold text-blue-900/90  tracking-tight">
                     {" "}
                     {data.title}
                   </h2>
-                  <p className="text-sm text-black/50 font-medium">
+                  <p className="text-sm max-sm:text-[16px]  text-black/80 font-medium">
                     {" "}
                     {data.description}
                   </p>
@@ -166,12 +169,13 @@ const Home = () => {
         </div>
       </div>
 
-      <Vacancies />
-      <HowJobpilotwork />
+      {/* <Vacancies /> */}
       <PopularCategory />
       <Featuredjob />
       <Topcompanies />
-    </>
+      <HowJobpilotwork />
+      <CTA />
+    </main>
   );
 };
 

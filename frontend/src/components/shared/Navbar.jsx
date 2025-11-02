@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "@/redux/authSlice";
-import { BaggageClaim, BriefcaseBusiness, Phone, Search, Globe, User, LogOut } from "lucide-react";
+import { BaggageClaim, BriefcaseBusiness, Phone, Search, Globe, User, LogOut, Menu } from "lucide-react";
 
 const Navbar = () => {
   const user = useSelector((state) => state.auth.user);
@@ -39,7 +39,7 @@ const Navbar = () => {
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       {/* Top Bar */}
-      <div className="w-full bg-gradient-to-r from-blue-900 to-blue-800 text-white">
+      <div className="w-full bg-gradient-to-r from-blue-900 to-blue-800 text-white max-sm:hidden">
         <div className="max-w-7xl mx-auto px-6 py-2 flex justify-between items-center">
           <div className="flex items-center gap-6 text-sm">
             <Link to="/employers" className="hover:text-blue-200 transition-colors">
@@ -68,7 +68,7 @@ const Navbar = () => {
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-white hover:bg-blue-700 p-2 h-8">
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white hover:text-blue-600 p-2 h-8">
                   <Globe size={16} />
                   <span className="ml-1 text-sm">EN</span>
                 </Button>
@@ -109,8 +109,8 @@ const Navbar = () => {
             <Link
               to="/"
               className={`font-medium text-sm transition-colors px-2 py-1 rounded-md ${isActiveLink("/")
-                  ? "text-blue-600 bg-blue-50"
-                  : "text-gray-700 hover:text-blue-600"
+                ? "text-blue-600 bg-blue-50"
+                : "text-gray-700 hover:text-blue-600"
                 }`}
             >
               Home
@@ -118,8 +118,8 @@ const Navbar = () => {
             <Link
               to="/jobs"
               className={`font-medium text-sm transition-colors px-2 py-1 rounded-md ${isActiveLink("/jobs")
-                  ? "text-blue-600 bg-blue-50"
-                  : "text-gray-700 hover:text-blue-600"
+                ? "text-blue-600 bg-blue-50"
+                : "text-gray-700 hover:text-blue-600"
                 }`}
             >
               Find Jobs
@@ -127,8 +127,8 @@ const Navbar = () => {
             <Link
               to="/companies"
               className={`font-medium text-sm transition-colors px-2 py-1 rounded-md ${isActiveLink("/companies")
-                  ? "text-blue-600 bg-blue-50"
-                  : "text-gray-700 hover:text-blue-600"
+                ? "text-blue-600 bg-blue-50"
+                : "text-gray-700 hover:text-blue-600"
                 }`}
             >
               Browse Companies
@@ -136,7 +136,7 @@ const Navbar = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="hidden lg:block w-[400px] mx-8">
+          <div className="hidden lg:block w-[400px] mx-8 ">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
@@ -164,11 +164,10 @@ const Navbar = () => {
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 {/* Mobile Search Icon */}
-                <Button variant="ghost" size="icon" className="lg:hidden">
-                  <Search className="h-5 w-5" />
-                </Button>
+
+
 
                 <Popover>
                   <PopoverTrigger asChild>
@@ -192,6 +191,9 @@ const Navbar = () => {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-64 p-4" align="end">
+
+
+
 
                     {/* <div className="flex items-center gap-3 mb-4 p-2 bg-gray-50 rounded-lg">
                       <Avatar className="w-10 h-10">
@@ -230,15 +232,18 @@ const Navbar = () => {
                             {getDisplayName()}
                           </h2>
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${user.role === 'student'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-purple-100 text-purple-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-purple-100 text-purple-800'
                             }`}>
                             {user.role}
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       </div>
+
                     </div>
+
+
 
 
                     <div className="space-y-2">
@@ -259,7 +264,7 @@ const Navbar = () => {
                       )}
 
                       {user.role === 'recruiter' && (
-                        <Link to="/dashboard">
+                        <Link to="/recruiter/dashboard">
                           <Button variant="outline" className="w-full justify-start gap-2 mt-2">
                             <BaggageClaim className="h-4 w-4" />
                             Recruiter Dashboard
@@ -278,13 +283,18 @@ const Navbar = () => {
                     </div>
                   </PopoverContent>
                 </Popover>
+
+
+                <Button variant="ghost" size="icon" className="lg:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
               </div>
             )}
           </div>
         </div>
 
         {/* Mobile Search Bar */}
-        <div className="lg:hidden mt-4">
+        <div className="hidden mt-4 ">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <input

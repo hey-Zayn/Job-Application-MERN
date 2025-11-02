@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const authInstance = axios.create({
-    baseURL: 'https://job-application-mern-nu.vercel.app',
+    baseURL: 'http://localhost:3000/api/v1',
     withCredentials: true,
 })
 

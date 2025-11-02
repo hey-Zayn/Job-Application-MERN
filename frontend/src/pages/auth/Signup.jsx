@@ -77,7 +77,7 @@ const SignupPage = () => {
       }
 
       // Send with FormData
-      const res = await authInstance.post("/register", formData, {
+      const res = await authInstance.post("/user/register", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

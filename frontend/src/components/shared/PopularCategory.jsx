@@ -47,25 +47,25 @@ const PopularCategory = () => {
   ];
 
   return (
-    <div className="w-full px-20 py-[100px]">
-      <div className="w-full flex max-sm:flex-col  justify-between items-center">
+    <div className="w-full  px-20 max-sm:px-6 py-[100px]">
+      <div className="w-full flex   justify-between items-center">
         <h1 className="text-3xl font-semibold">Popular category</h1>
         <button className="text-blue-600 text-md flex items-center gap-1 cursor-pointer">
           View All <ArrowRight size={16} />
         </button>
       </div>
-      <div className="grid md:grid-cols-4 sm:grid-cols-2  mt-[50px]">
+      <div className="grid md:grid-cols-4 sm:grid-cols-2  mt-[50px] max-sm:gap-4 ">
         
         {item.map((i) => (
-          <div className="w-[270px] h-[116px] py-[24px] px-2 flex gap-4 group  rounded-xl ">
+          <div className="w-[270px]  max-sm:w-full max-sm:shadow-lg h-[116px] max-sm:h-full py-[24px] max-sm:py-[10px] px-2 flex gap-4 group  rounded-xl ">
             <div>
-              <div className="p-4 bg-blue-100 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white">
+              <div className="p-4 max-sm:p-6 bg-blue-100 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white">
                {i.icons}
               </div>
             </div>
-            <div className="space-y-1 text-start">
-              <h2 className="text-md font-semibold"> {i.title} </h2>
-              <p className="text-sm text-black/50"> {i.desciption} </p>
+            <div className="space-y-1 text-start max-sm:pt-2">
+              <h2 className="text-md max-sm:text-lg font-semibold"> {i.title} </h2>
+              <p className="text-sm max-sm:text-md text-black/50"> {i.desciption} </p>
             </div>
           </div>
         ))}

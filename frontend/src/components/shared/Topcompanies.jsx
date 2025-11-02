@@ -49,8 +49,8 @@ const Topcompanies = () => {
     },
   ];
   return (
-    <div className="w-full px-20 py-[100px]">
-      <div className="w-full flex max-sm:flex-col  justify-between items-center">
+    <div className="w-full px-20 max-sm:px-6 py-[100px]">
+      <div className="w-full flex   justify-between items-center">
         <h1 className="text-3xl font-semibold">Top companies</h1>
         <button className="text-blue-600 text-md flex items-center gap-1 cursor-pointer">
           View All <ArrowRight size={16} />
@@ -74,19 +74,19 @@ const Topcompanies = () => {
                   <img
                     src={EmployersLogo}
                     alt="company Logo"
-                    className="cursor-pointer"
+                    className="cursor-pointer max-sm:w-12 max-sm:h-12 "
                   />
                   <div className="text-left ">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm text-black/80 font-semibold">
+                      <h3 className="text-sm max-sm:text-[16px] text-black/80 font-semibold">
                         {i.companyName}
                       </h3>
                       <h4 className="bg-red-600/20 text-xs text-red-700 font-semibold px-2 py-1 rounded-full">
-                        <span className="text-[11px] uppercase">{i.Featured}</span>
+                        <span className="text-[11px] max-sm:text-[12px] max-sm:font-bold uppercase">{i.Featured}</span>
                       </h4>
                     </div>
-                    <h5 className="flex items-center gap-1 text-sm text-black/50">
-                      <MapPin size={16} />
+                    <h5 className="flex items-center gap-1 text-sm max-sm:text-[16px] text-black/50">
+                      <MapPin className="w-4 h-4 max-sm:w-5 max-sm:h-5" />
                       {i.location}
                     </h5>
                   </div>

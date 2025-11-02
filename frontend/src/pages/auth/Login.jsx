@@ -43,7 +43,7 @@ const LoginPage = () => {
 
     // Login logic would go here
     try {
-      const res = await authInstance.post("/login", form);
+      const res = await authInstance.post("/user/login", form);
      
       dispatch(setUser(res.data.user))
       toast(res.data.message || "Login successful.");

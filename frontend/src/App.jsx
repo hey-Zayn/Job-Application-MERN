@@ -10,7 +10,7 @@ import Profile from "./pages/Profile";
 import SingleJob from "./pages/job/SingleJob";
 import Dashboard from "./pages/recuter-Dashboard/Dashboard";
 
-import MyJobs from "./pages/Applicant/myJobs";
+import MyJobs from "./pages/Applicant/MyJobs";
 import RegisterCompany from "./pages/recuter-Dashboard/RegisterCompany";
 import Recruiterjobs from "./pages/recuter-Dashboard/recruiterjobs";
 

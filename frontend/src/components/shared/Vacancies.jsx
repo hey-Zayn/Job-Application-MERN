@@ -52,15 +52,15 @@ const Vacancies = () => {
     },
   ];
   return (
-    <div className="w-full px-20 py-[100px]">
-      <div className="space-y-6 ">
+    <div className="w-full px-20 max-sm:px-6 py-[100px] ">
+      <div className="space-y-6 max-sm:space-y-2 ">
         <h1 className="text-3xl text-black/90 font-semibold px-4 ">Most Popular Vacancies</h1>
        
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
           {dmeo.map((item) => (
-            <div className="flex flex-col bg-white rounded-lg  p-5 group transition duration-200 cursor-pointer ">
-              <h3 className="text-md text-black/80 font-semibold mb-1 group-hover:text-blue-600 ">{item.title}</h3>
-              <p className="text-gray-500 text-xs">{item.description}</p>
+            <div className="flex flex-col bg-white rounded-lg  shadow-md p-5 group transition duration-200 cursor-pointer ">
+              <h3 className="text-md max-sm:text-xl text-black/80 font-semibold mb-1 group-hover:text-blue-600 ">{item.title}</h3>
+              <p className="text-gray-500 text-xs max-sm:text-lg">{item.description}</p>
             </div>
           ))}
         </div>

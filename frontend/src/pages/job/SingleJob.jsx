@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,70 +19,43 @@ import {
   CheckCircle,
   Briefcase,
   GraduationCap,
-  Star,
-  Eye
+  FileText,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import { authInstance } from '../../axios/authInstance';
 
 const SingleJob = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [jobData, setJobData] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [isApplied, setIsApplied] = useState(false);
 
-  // Mock job data - replace with actual API call
-  const jobData = {
-    id: id,
-    title: "Senior Frontend Developer",
-    company: {
-      name: "TechCorp Inc.",
-      logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=64&h=64&fit=crop&crop=face",
-      description: "Leading technology company building the future of web applications."
-    },
-    description: "We are looking for a skilled Senior Frontend Developer to join our dynamic team. You will be responsible for developing and maintaining high-quality web applications using modern technologies.",
-    fullDescription: `
-      <h3>About the Role</h3>
-      <p>As a Senior Frontend Developer at TechCorp, you'll be working on cutting-edge projects that impact millions of users worldwide. You'll collaborate with cross-functional teams to deliver exceptional user experiences.</p>
-      
-      <h3>Key Responsibilities</h3>
-      <ul>
-        <li>Develop and maintain responsive web applications using React.js</li>
-        <li>Collaborate with UX/UI designers to implement pixel-perfect designs</li>
-        <li>Write clean, maintainable, and efficient code</li>
-        <li>Mentor junior developers and conduct code reviews</li>
-        <li>Optimize applications for maximum speed and scalability</li>
-        <li>Participate in agile development processes</li>
-      </ul>
-      
-      <h3>What We Offer</h3>
-      <ul>
-        <li>Competitive salary and equity package</li>
-        <li>Flexible working hours and remote options</li>
-        <li>Comprehensive health benefits</li>
-        <li>Professional development budget</li>
-        <li>Modern tech stack and tools</li>
-      </ul>
-    `,
-    requirements: [
-      "5+ years of experience in frontend development",
-      "Strong proficiency in React.js and TypeScript",
-      "Experience with state management (Redux, Zustand)",
-      "Knowledge of modern CSS frameworks (Tailwind CSS)",
-      "Familiarity with testing frameworks (Jest, Cypress)",
-      "Experience with version control (Git)",
-      "Excellent problem-solving skills"
-    ],
-    salary: "$90,000 - $120,000",
-    location: "San Francisco, CA (Remote Available)",
-    jobType: "Full-time",
-    experienceLevel: "Senior",
-    category: "Engineering",
-    postedDate: "2024-01-15",
-    applicationDeadline: "2024-02-15",
-    applicants: 47,
-    views: 234,
-    skills: ["React", "TypeScript", "JavaScript", "CSS", "HTML", "Redux", "Tailwind CSS"],
-    benefits: ["Health Insurance", "Remote Work", "Flexible Hours", "Stock Options", "Learning Budget"]
-  };
+  useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        setLoading(true);
+        const response = await authInstance.get(`/job/get-jobbyid/${id}`);
+        
+        if (response.data.success) {
+          setJobData(response.data.job);
+        } else {
+          setError('Failed to fetch job details');
+        }
+      } catch (err) {
+        setError('Error fetching job: ' + (err.response?.data?.message || err.message));
+        console.error('Error fetching job:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchJob();
+    }
+  }, [id]);
 
   const handleSaveJob = () => {
     setIsSaved(!isSaved);
@@ -90,7 +63,6 @@ const SingleJob = () => {
   };
 
   const handleApply = () => {
-    setIsApplied(true);
     toast.success("Application submitted successfully!");
   };
 
@@ -100,23 +72,83 @@ const SingleJob = () => {
   };
 
   const getInitials = (name) => {
+    if (!name) return 'CN';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  const formatSalary = (salary) => {
+    if (!salary || salary === 'NaN') return 'Not specified';
+    return `$${salary}`;
+  };
+
+  const formatExperience = (level) => {
+    const levels = {
+      1: 'Entry Level',
+      2: 'Mid Level',
+      3: 'Senior Level',
+      4: 'Director'
+    };
+    return levels[level] || 'Not specified';
+  };
+
+  const getDaysAgo = (createdAt) => {
+    if (!createdAt) return 'Recently';
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diffTime = Math.abs(now - created);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+    return `${Math.ceil(diffDays / 30)} months ago`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading job details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !jobData) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <Building className="h-8 w-8 text-red-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Job Not Found</h3>
+          <p className="text-gray-600 mb-4">{error || 'The job you are looking for does not exist.'}</p>
+          <Button onClick={() => navigate('/jobs')}>
+            Back to Jobs
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Navigation */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="sm" className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-8">
+          <Button 
+            variant="ghost" 
+            className="flex items-center gap-2"
+            onClick={() => navigate('/jobs')}
+          >
             <ArrowLeft className="h-4 w-4" />
             Back to Jobs
           </Button>
-          <div className="flex-1" />
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
-              size="sm" 
+              size="sm"
               onClick={handleShare}
               className="flex items-center gap-2"
             >
@@ -125,7 +157,7 @@ const SingleJob = () => {
             </Button>
             <Button 
               variant={isSaved ? "default" : "outline"} 
-              size="sm" 
+              size="sm"
               onClick={handleSaveJob}
               className="flex items-center gap-2"
             >
@@ -138,77 +170,76 @@ const SingleJob = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Job Header Card */}
-            <Card className="shadow-lg border-0">
+            {/* Job Header */}
+            <Card>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-4">
-                    <Avatar className="w-16 h-16 border-2 border-white shadow-lg">
-                      <AvatarImage src={jobData.company.logo} alt={jobData.company.name} />
-                      <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
-                        {getInitials(jobData.company.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                        {jobData.title}
-                      </h1>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                        <div className="flex items-center gap-1">
-                          <Building className="h-4 w-4" />
-                          <span className="font-medium">{jobData.company.name}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          <span>{jobData.location}</span>
-                        </div>
+                <div className="flex items-start gap-4 mb-6">
+                  <Avatar className="w-16 h-16 border-2 border-gray-100">
+                    <AvatarImage src={jobData.company?.logo} alt={jobData.company?.name} />
+                    <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
+                      {getInitials(jobData.company?.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                      {jobData.title}
+                    </h1>
+                    <div className="flex items-center gap-4 text-gray-600 mb-4">
+                      <div className="flex items-center gap-1">
+                        <Building className="h-4 w-4" />
+                        <span className="font-medium">{jobData.company?.name || 'Company Name'}</span>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <Briefcase className="h-3 w-3" />
-                          {jobData.jobType}
-                        </Badge>
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          {jobData.salary}
-                        </Badge>
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <GraduationCap className="h-3 w-3" />
-                          {jobData.experienceLevel}
-                        </Badge>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        <span>{jobData.location || 'Location not specified'}</span>
                       </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <Briefcase className="h-3 w-3" />
+                        {jobData.jobType || 'Full-time'}
+                      </Badge>
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <DollarSign className="h-3 w-3" />
+                        {formatSalary(jobData.salary)}
+                      </Badge>
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <GraduationCap className="h-3 w-3" />
+                        {formatExperience(jobData.experienceLevel)}
+                      </Badge>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-t border-gray-200">
+                {/* Job Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-gray-200">
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
                       <Calendar className="h-4 w-4" />
                       <span className="text-sm font-medium">Posted</span>
                     </div>
-                    <p className="text-sm text-gray-900">{new Date(jobData.postedDate).toLocaleDateString()}</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
-                      <Clock className="h-4 w-4" />
-                      <span className="text-sm font-medium">Deadline</span>
-                    </div>
-                    <p className="text-sm text-gray-900">{new Date(jobData.applicationDeadline).toLocaleDateString()}</p>
+                    <p className="text-sm font-semibold text-gray-900">{getDaysAgo(jobData.createdAt)}</p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
                       <Users className="h-4 w-4" />
                       <span className="text-sm font-medium">Applicants</span>
                     </div>
-                    <p className="text-sm text-gray-900">{jobData.applicants}</p>
+                    <p className="text-sm font-semibold text-gray-900">{jobData.applications?.length || 0}</p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
-                      <Eye className="h-4 w-4" />
-                      <span className="text-sm font-medium">Views</span>
+                      <Clock className="h-4 w-4" />
+                      <span className="text-sm font-medium">Experience</span>
                     </div>
-                    <p className="text-sm text-gray-900">{jobData.views}</p>
+                    <p className="text-sm font-semibold text-gray-900">{formatExperience(jobData.experienceLevel)}</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
+                      <Briefcase className="h-4 w-4" />
+                      <span className="text-sm font-medium">Positions</span>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900">{jobData.position || 1}</p>
                   </div>
                 </div>
               </CardContent>
@@ -217,26 +248,55 @@ const SingleJob = () => {
             {/* Job Details Tabs */}
             <Tabs defaultValue="description" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="requirements">Requirements</TabsTrigger>
-                <TabsTrigger value="company">Company</TabsTrigger>
+                <TabsTrigger value="description" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Description
+                </TabsTrigger>
+                <TabsTrigger value="requirements" className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Requirements
+                </TabsTrigger>
+                <TabsTrigger value="company" className="flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  Company
+                </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="description" className="space-y-4 mt-6">
+              <TabsContent value="description" className="mt-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Job Description</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div 
-                      className="prose prose-gray max-w-none"
-                      dangerouslySetInnerHTML={{ __html: jobData.fullDescription }}
-                    />
+                    <div className="prose prose-gray max-w-none">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">About the Role</h3>
+                      <p className="text-gray-700 leading-relaxed mb-6">{jobData.description}</p>
+                      
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Responsibilities</h3>
+                      <ul className="space-y-2 text-gray-700">
+                        <li className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                          <span>Develop and maintain high-quality web applications</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                          <span>Collaborate with cross-functional teams</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                          <span>Write clean, maintainable, and efficient code</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                          <span>Participate in code reviews and team meetings</span>
+                        </li>
+                      </ul>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="requirements" className="space-y-4 mt-6">
+              <TabsContent value="requirements" className="mt-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Requirements & Skills</CardTitle>
@@ -245,59 +305,93 @@ const SingleJob = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ul className="space-y-3">
-                      {jobData.requirements.map((requirement, index) => (
-                        <li key={index} className="flex items-start gap-3">
-                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-700">{requirement}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    
-                    <Separator className="my-6" />
-                    
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-3">Required Skills</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {jobData.skills.map((skill, index) => (
-                          <Badge key={index} variant="outline" className="px-3 py-1">
-                            {skill}
-                          </Badge>
-                        ))}
+                    {jobData.requirements && jobData.requirements.length > 0 ? (
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-semibold text-gray-900 mb-3">Requirements</h4>
+                          <ul className="space-y-3">
+                            {jobData.requirements.map((requirement, index) => (
+                              <li key={index} className="flex items-start gap-3">
+                                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-700">{requirement}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        
+                        <Separator />
+                        
+                        <div>
+                          <h4 className="font-semibold text-gray-900 mb-3">Required Skills</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {jobData.requirements.flatMap(req => 
+                              req.split(',').map(skill => skill.trim())
+                            ).map((skill, index) => (
+                              <Badge key={index} variant="outline" className="px-3 py-1">
+                                {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <p className="text-gray-600">No specific requirements listed for this position.</p>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="company" className="space-y-4 mt-6">
+              <TabsContent value="company" className="mt-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>About {jobData.company.name}</CardTitle>
+                    <CardTitle>About {jobData.company?.name || 'the Company'}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700 mb-6">{jobData.company.description}</p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-6">
                       <div>
-                        <h4 className="font-semibold text-gray-900 mb-3">Company Benefits</h4>
-                        <div className="space-y-2">
-                          {jobData.benefits.map((benefit, index) => (
-                            <div key={index} className="flex items-center gap-2">
-                              <Star className="h-4 w-4 text-yellow-500" />
-                              <span className="text-gray-700">{benefit}</span>
-                            </div>
-                          ))}
-                        </div>
+                        <h4 className="font-semibold text-gray-900 mb-3">Company Information</h4>
+                        <p className="text-gray-700">
+                          {jobData.company?.description || 'Information about the company is not available.'}
+                        </p>
                       </div>
                       
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-3">Company Culture</h4>
-                        <div className="space-y-2 text-gray-700">
-                          <p>• Innovative and collaborative environment</p>
-                          <p>• Focus on work-life balance</p>
-                          <p>• Continuous learning opportunities</p>
-                          <p>• Diverse and inclusive workplace</p>
+                      <Separator />
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="font-semibold text-gray-900 mb-3">Job Details</h4>
+                          <div className="space-y-3 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Job Type</span>
+                              <span className="font-medium text-gray-900">{jobData.jobType || 'Not specified'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Experience Level</span>
+                              <span className="font-medium text-gray-900">{formatExperience(jobData.experienceLevel)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Location</span>
+                              <span className="font-medium text-gray-900">{jobData.location || 'Not specified'}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <h4 className="font-semibold text-gray-900 mb-3">Application Info</h4>
+                          <div className="space-y-3 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Total Applicants</span>
+                              <span className="font-medium text-gray-900">{jobData.applications?.length || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Available Positions</span>
+                              <span className="font-medium text-gray-900">{jobData.position || 1}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Posted Date</span>
+                              <span className="font-medium text-gray-900">{getDaysAgo(jobData.createdAt)}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -310,72 +404,39 @@ const SingleJob = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Apply Card */}
-            <Card className="shadow-lg border-0 sticky top-6">
+            <Card className="sticky top-6">
               <CardContent className="p-6">
-                {isApplied ? (
-                  <div className="text-center">
-                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                    <h3 className="font-semibold text-gray-900 mb-2">Application Submitted!</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Your application has been successfully submitted. The employer will review your profile.
-                    </p>
-                    <Button variant="outline" className="w-full">
-                      View Application Status
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <Button 
-                      onClick={handleApply}
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 text-base font-semibold shadow-lg"
-                    >
-                      Apply Now
-                    </Button>
-                    <p className="text-xs text-gray-500 text-center mt-3">
-                      {jobData.applicants} people already applied
-                    </p>
-                  </>
-                )}
+                <Button 
+                  onClick={handleApply}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-base font-semibold"
+                  size="lg"
+                >
+                  Apply Now
+                </Button>
+                <p className="text-xs text-gray-500 text-center mt-3">
+                  {jobData.applications?.length || 0} people already applied
+                </p>
                 
                 <Separator className="my-4" />
                 
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Job Type</span>
-                    <span className="font-medium">{jobData.jobType}</span>
+                    <span className="font-medium text-gray-900">{jobData.jobType || 'Not specified'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Experience</span>
-                    <span className="font-medium">{jobData.experienceLevel}</span>
+                    <span className="font-medium text-gray-900">{formatExperience(jobData.experienceLevel)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Salary</span>
-                    <span className="font-medium">{jobData.salary}</span>
+                    <span className="font-medium text-gray-900">{formatSalary(jobData.salary)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Location</span>
-                    <span className="font-medium text-right">{jobData.location}</span>
+                    <span className="font-medium text-gray-900 text-right">{jobData.location || 'Not specified'}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Similar Jobs */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Similar Jobs</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[1, 2, 3].map((item) => (
-                  <div key={item} className="p-3 border border-gray-200 rounded-lg hover:border-blue-200 transition-colors cursor-pointer">
-                    <h4 className="font-semibold text-gray-900 text-sm mb-1">Frontend Developer</h4>
-                    <p className="text-xs text-gray-600 mb-2">AnotherTech • $85k - $110k</p>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <MapPin className="h-3 w-3" />
-                      <span>Remote</span>
-                    </div>
-                  </div>
-                ))}
               </CardContent>
             </Card>
           </div>
